@@ -157,10 +157,6 @@ class UNET_plusplus(tf.keras.Model):
 
             self.init_filter_size*=2
 
-        # self.output_layers = []
-        # for _ in range(self.num_depth):
-        #     self.output_layers.append(tf.keras.layers.Conv2D(1, 1, padding='same', data_format='channels_last', activation='sigmoid'))
-
         # self.final_layer = tf.keras.layers.Average()
         self.final_layer = tf.keras.layers.Conv2D(1, 1, padding='same', data_format='channels_last', activation='sigmoid')
 
@@ -172,7 +168,6 @@ class UNET_plusplus(tf.keras.Model):
         for depth in range(1, self.num_depth+1):
             layer_output = []
 
-            # print('Layer {} Outputs '.format(str(depth)) + "  " +"-"*10 + "\n")
             #Encoding
             layer_output.append(self.Encoder_layers[depth](layer_outputs[depth-1][0], is_train))
             # print("Layer Output " + str(depth) + ", 0 size : ", layer_output[-1].shape)
@@ -188,26 +183,13 @@ class UNET_plusplus(tf.keras.Model):
                 concat_list = [output]
                 for k in range(j+1):
                     concat_list.append(layer_outputs[depth-k-1][j-k])
-                    # print("\t Concating size ", layer_outputs[depth-k-1][j-k].shape)
 
                 output = tf.concat(concat_list, axis = 3)
-                # print("\t Concated output size : ", output.shape)
                 output = self.Decoder_layers[depth][3*j+1](output, is_train)
-                # print("\t Dropout output size : ", output.shape)
                 output = self.Decoder_layers[depth][3*j+2](output)
-                # print("\t Conv2D output shape : ", output.shape)
                 layer_output.append(output)
-                # print("Layer Output " + str(depth) + "," + str(j+1) + " size : ", layer_output[-1].shape)
-                # print("\n")
 
             layer_outputs.append(layer_output)
-
-        # outputs = []
-        # for depth in range(self.num_depth): 
-        #     outputs.append(self.output_layers[depth](layer_outputs[depth+1][-1]))
-        
-        # output = self.final_layer(outputs)
-        # print("Final Output size : ", output.shape)
 
         output = self.final_layer(layer_outputs[-1][-1])
         return output
